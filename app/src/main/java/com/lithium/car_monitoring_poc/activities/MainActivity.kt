@@ -78,7 +78,30 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getUpdates(){
+        var obtainSocket = true
+        Thread (Runnable {
+            while(true) {
+                if (obtainSocket) {
+                    var socket = ClientHelper.getBluetoothSocket(this)
+                    EchoOffCommand().run(socket.getInputStream(), socket.getOutputStream());
+                    LineFeedOffCommand().run(socket.getInputStream(), socket.getOutputStream());
+                    TimeoutCommand(125).run(socket.getInputStream(), socket.getOutputStream());
+                    SelectProtocolCommand(ObdProtocols.AUTO).run(socket.getInputStream(), socket.getOutputStream());
+                    obtainSocket = false
+                }
+                val temperature = AmbientAirTemperatureCommand().run(socket.getInputStream(), socket.getOutputStream());
+                val throttle = ThrottlePositionCommand().run(socket.getInputStream(), socket.getOutputStream())
+                val speed = SpeedCommand().run(socket.getInputStream(), socket.getOutputStream())
+                runOnUiThread(Runnable {
+                    txtTemperature.text = resources.getString(R.string.temp_text, temperature.toString())
+                    txtThrottle.text = resources.getString(R.string.throttle_text, throttle.toString())
+                    txtSpeed.text = resources.getString(R.string.speed_text, speed.toString())
+                })
+            }
+           
+        }.start()
     }
+
     private fun swapViews(empty:Boolean) {
         runOnUiThread {
             if (empty) {

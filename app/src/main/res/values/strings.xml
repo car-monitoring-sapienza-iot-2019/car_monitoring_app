@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Car Monitoring POC</string>
+    <string name="home">Stats</string>
+    <string name="settings">Settings</string>
+    <string name="reload">Reload</string>
+    <string name="general">Miscellaneous</string>
+    <string name="key_add_device">key_add_device</string>
+    <string name="add_new_bluetooth_device">Configure bluetooth device</string>
+    <string name="key_mock">key_mock</string>
+    <string name="mock_setting">Mock values</string>
+    <string name="testing">Testing</string>
+    <string name="permission_error">Bluetooth permissions are needed to configure the device!</string>
+    <string name="no_bluetooth_support">Bluetooth is not support by this device!</string>
+    <string name="configure_bluetooth_device">Configure device</string>
+    <string name="preferred_device_set">Preferred device set!</string>
+    <string name="gps_position" translatable="false">GPS: (%1$s,%2$s) </string>
+    <string name="bluetooth_status" translatable="false">Bluetooth device: %1$s </string>
+    <string name="temp_text" translatable="false">Temperature: %1$s </string>
+    <string name="throttle_text" translatable="false">Throttle: %1$s </string>
+    <string name="air_text" translatable="false">AirFlow: %1$s </string>
+    <string name="distance_text" translatable="false">Distance: %1$s </string>
+</resources>

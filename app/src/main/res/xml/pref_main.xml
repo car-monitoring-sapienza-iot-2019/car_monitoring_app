@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:iconSpaceReserved="false">
+    <PreferenceCategory
+        android:title="@string/general"
+        app:iconSpaceReserved="false">
+        <Preference
+            android:defaultValue="false"
+            android:key="@string/key_add_device"
+            android:title="@string/add_new_bluetooth_device"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+    <PreferenceCategory
+            android:title="@string/testing"
+            app:iconSpaceReserved="false">
+        <SwitchPreference
+                android:defaultValue="false"
+                android:key="@string/key_mock"
+                android:title="@string/mock_setting"
+                app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

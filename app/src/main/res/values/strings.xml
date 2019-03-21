@@ -13,10 +13,11 @@
     <string name="no_bluetooth_support">Bluetooth is not support by this device!</string>
     <string name="configure_bluetooth_device">Configure device</string>
     <string name="preferred_device_set">Preferred device set!</string>
-    <string name="gps_position" translatable="false">GPS: (%1$s,%2$s) </string>
-    <string name="bluetooth_status" translatable="false">Bluetooth device: %1$s </string>
-    <string name="temp_text" translatable="false">Temperature: %1$s </string>
-    <string name="throttle_text" translatable="false">Throttle: %1$s </string>
-    <string name="air_text" translatable="false">AirFlow: %1$s </string>
-    <string name="distance_text" translatable="false">Distance: %1$s </string>
+    <string name="gps_position">GPS: (%1$s,%2$s) </string>
+    <string name="bluetooth_status">Bluetooth device: %1$s </string>
+    <string name="temp_text">Temperature: %1$s </string>
+    <string name="throttle_text">Throttle: %1$s </string>
+    <string name="air_text">AirFlow: %1$s </string>
+    <string name="distance_text">Distance: %1$s </string>
+    <string name="speed_text">Speed: %1$s </string>
 </resources>

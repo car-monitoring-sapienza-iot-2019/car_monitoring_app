@@ -41,6 +41,12 @@
                         android:text="@string/throttle_text"/>
 
                 <TextView
+                        android:id="@+id/txtSpeed"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/speed_text"/>
+
+                <TextView
                         android:id="@+id/txtAir"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

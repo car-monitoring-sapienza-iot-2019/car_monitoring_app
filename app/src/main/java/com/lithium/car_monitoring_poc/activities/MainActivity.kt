@@ -2,14 +2,21 @@ package com.lithium.car_monitoring_poc.activities
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.bluetooth.BluetoothDevice
-import android.content.IntentFilter
+import android.bluetooth.BluetoothSocket
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import com.github.pires.obd.commands.SpeedCommand
+import com.github.pires.obd.commands.engine.ThrottlePositionCommand
+import com.github.pires.obd.commands.protocol.EchoOffCommand
+import com.github.pires.obd.commands.protocol.LineFeedOffCommand
+import com.github.pires.obd.commands.protocol.SelectProtocolCommand
+import com.github.pires.obd.commands.protocol.TimeoutCommand
+import com.github.pires.obd.commands.temperature.AmbientAirTemperatureCommand
+import com.github.pires.obd.enums.ObdProtocols
 import com.google.android.material.snackbar.Snackbar
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
@@ -23,8 +30,6 @@ import com.mikepenz.materialdrawer.Drawer
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.base_stats_fragment.*
 import kotlinx.android.synthetic.main.empty_view.*
-
-
 
 
 class MainActivity : AppCompatActivity() {
@@ -79,27 +84,33 @@ class MainActivity : AppCompatActivity() {
 
     private fun getUpdates(){
         var obtainSocket = true
+        var socket:BluetoothSocket? = null
         Thread (Runnable {
-            while(true) {
+            while (true) {
                 if (obtainSocket) {
-                    var socket = ClientHelper.getBluetoothSocket(this)
-                    EchoOffCommand().run(socket.getInputStream(), socket.getOutputStream());
-                    LineFeedOffCommand().run(socket.getInputStream(), socket.getOutputStream());
-                    TimeoutCommand(125).run(socket.getInputStream(), socket.getOutputStream());
-                    SelectProtocolCommand(ObdProtocols.AUTO).run(socket.getInputStream(), socket.getOutputStream());
+                    socket = ClientHelper.getBluetoothSocket(this)
+                    if (socket == null) continue
+                    EchoOffCommand().run(socket!!.inputStream, socket!!.outputStream)
+                    LineFeedOffCommand().run(socket!!.inputStream, socket!!.outputStream)
+                    TimeoutCommand(125).run(socket!!.inputStream, socket!!.outputStream)
+                    SelectProtocolCommand(ObdProtocols.AUTO).run(socket!!.inputStream, socket!!.outputStream)
                     obtainSocket = false
                 }
-                val temperature = AmbientAirTemperatureCommand().run(socket.getInputStream(), socket.getOutputStream());
-                val throttle = ThrottlePositionCommand().run(socket.getInputStream(), socket.getOutputStream())
-                val speed = SpeedCommand().run(socket.getInputStream(), socket.getOutputStream())
-                runOnUiThread(Runnable {
+                if (socket == null) {
+                    obtainSocket = true
+                    continue
+                }
+
+                val temperature = AmbientAirTemperatureCommand().run(socket!!.inputStream, socket!!.outputStream)
+                val throttle = ThrottlePositionCommand().run(socket!!.inputStream, socket!!.outputStream)
+                val speed = SpeedCommand().run(socket!!.inputStream, socket!!.outputStream)
+                runOnUiThread {
                     txtTemperature.text = resources.getString(R.string.temp_text, temperature.toString())
                     txtThrottle.text = resources.getString(R.string.throttle_text, throttle.toString())
                     txtSpeed.text = resources.getString(R.string.speed_text, speed.toString())
-                })
+                }
             }
-           
-        }.start()
+        }).start()
     }
 
     private fun swapViews(empty:Boolean) {

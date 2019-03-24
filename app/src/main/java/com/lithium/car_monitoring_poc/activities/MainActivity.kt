@@ -46,12 +46,20 @@ class MainActivity : AppCompatActivity() {
         drawer = ClientHelper.applyDrawer(this,toolbar)
         this.empty_text.text = "No compatible devices found"
         bluetoothId = InfoManager.getBluetoothDeviceID(this)
+        putPlaceholders()
         if ( bluetoothId == null) swapViews(true)
         else startService()
+
+
+        empty_button_reload.setOnClickListener {
+            bluetoothId = InfoManager.getBluetoothDeviceID(this)
+            if ( bluetoothId == null) swapViews(true)
+            else startService()
+        }
     }
 
 
-    fun startService(){
+    private fun startService(){
         Thread(Runnable {
             Dexter.withActivity(this)
                 .withPermissions(
@@ -113,6 +121,14 @@ class MainActivity : AppCompatActivity() {
         }).start()
     }
 
+    private fun putPlaceholders() {
+        val placeholder = "--"
+        txtTemperature.text = resources.getString(R.string.temp_text, placeholder)
+        txtThrottle.text = resources.getString(R.string.throttle_text, placeholder)
+        txtSpeed.text = resources.getString(R.string.speed_text, placeholder)
+        txtAir.text = resources.getString(R.string.air_text, placeholder)
+        txtDistance.text = resources.getString(R.string.distance_text, placeholder)
+    }
     private fun swapViews(empty:Boolean) {
         runOnUiThread {
             if (empty) {

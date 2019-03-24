@@ -30,13 +30,14 @@ import kotlinx.android.synthetic.main.activity_bluetooth_configure.*
 class BluetoothConfigureActivity : AppCompatActivity() {
     private val mDeviceList = ArrayList<String>()
     private lateinit var mBluetoothAdapter: BluetoothAdapter
-
+    private var registeredReceiver:Boolean = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_bluetooth_configure)
         ClientHelper.setupToolbar(this, toolbar, R.drawable.ic_arrow_back_black_24dp)
         supportActionBar!!.setTitle(R.string.configure_bluetooth_device)
         if (packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)) {
+                registeredReceiver = true
                 mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
                 startDiscovery(mBluetoothAdapter)
         } else ClientHelper.createTextSnackBar(mainLayout,R.string.no_bluetooth_support, Snackbar.LENGTH_LONG)
@@ -97,6 +98,6 @@ class BluetoothConfigureActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(mReceiver)
+        if (registeredReceiver) unregisterReceiver(mReceiver)
     }
 }

@@ -33,7 +33,7 @@ class ClientHelper {
         HOME(1), SETTINGS(2)
     }
     companion object {
-        private val MY_UUID = UUID.fromString("0000110E-0000-1000-8000-00805F9B34FB")
+        private val MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
         fun setupToolbar(activity: AppCompatActivity, toolbar: Toolbar, icon:Int) {
             activity.setSupportActionBar(toolbar)
             val actionbar = activity.supportActionBar
@@ -77,7 +77,7 @@ class ClientHelper {
 
             val activityIdentifier = ClientHelper.getIdentifier(activity)
             val home = PrimaryDrawerItem().withIdentifier(Selection.HOME.value)
-                .withIcon(R.drawable.ic_home_black_24dp).withName(R.string.home).withTextColor(primaryColor)
+                .withIcon(R.drawable.ic_directions_car_black_24dp).withName(R.string.home).withTextColor(primaryColor)
                 .withIconColor(primaryColor).withSelectable(activityIdentifier == Selection.HOME.value)
                 .withIconTintingEnabled(true)
             val settings = PrimaryDrawerItem().withIdentifier(Selection.SETTINGS.value).withIcon(R.drawable.ic_settings_black_24dp)
@@ -137,10 +137,22 @@ class ClientHelper {
 
         fun getBluetoothSocket(context:Context) : BluetoothSocket? {
             val id = InfoManager.getBluetoothDeviceID(context) ?: return null
+
             return if (context.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)) {
                 val mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-                mBluetoothAdapter.getRemoteDevice(id).createInsecureRfcommSocketToServiceRecord(MY_UUID)
+                return try {
+                    mBluetoothAdapter.getRemoteDevice(id).createInsecureRfcommSocketToServiceRecord(MY_UUID)
+                } catch (e:IllegalArgumentException) {
+                    e.printStackTrace()
+                    null
+                }
             } else null
         }
+
+        fun getTimeout(context:Context): Int {
+            val pref = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
+            return pref.getString(context.resources.getString(R.string.key_timeout),"125").toInt()
+        }
+
     }
 }

@@ -14,54 +14,47 @@
                           android:id="@+id/statsLayout">
 
                 <TextView
-                        android:id="@+id/gpsStatus"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/gps_position"
-                        android:textSize="16sp"/>
-
-                <TextView
                         android:id="@+id/bluetoothStatus"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/bluetooth_status"
-                        android:textSize="16sp"
-                        android:visibility="gone"/>
+                        android:textSize="18sp"/>
 
                 <TextView
-                        android:id="@+id/txtTemperature"
+                        android:id="@+id/gpsStatus"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/temp_text"
-                        android:textSize="16sp"/>
+                        android:textSize="18sp"
+                        android:paddingBottom="16dp"/>
+
+                <TextView
+                        android:id="@+id/txtRPM"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="18sp"/>
 
                 <TextView
                         android:id="@+id/txtThrottle"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/throttle_text"
-                        android:textSize="16sp"/>
+                        android:textSize="18sp"/>
 
                 <TextView
                         android:id="@+id/txtSpeed"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/speed_text"
-                        android:textSize="16sp"/>
+                        android:textSize="18sp"/>
 
                 <TextView
                         android:id="@+id/txtAir"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/air_text"
-                        android:textSize="16sp"/>
+                        android:textSize="18sp"/>
 
                 <TextView
-                        android:id="@+id/txtDistance"
+                        android:id="@+id/txtEngineTemp"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/distance_text"
-                        android:textSize="16sp"/>
+                        android:textSize="18sp"/>
             </LinearLayout>
             <include layout="@layout/empty_view" />
         </FrameLayout>

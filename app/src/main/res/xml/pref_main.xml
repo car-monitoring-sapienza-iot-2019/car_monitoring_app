@@ -12,12 +12,14 @@
             app:iconSpaceReserved="false" />
     </PreferenceCategory>
     <PreferenceCategory
-            android:title="@string/testing"
+            android:title="@string/obd_settings"
             app:iconSpaceReserved="false">
-        <SwitchPreference
-                android:defaultValue="false"
-                android:key="@string/key_mock"
-                android:title="@string/mock_setting"
+        <EditTextPreference
+                android:defaultValue="125"
+                android:inputType="number"
+                android:key="@string/key_timeout"
+                android:numeric="integer"
+                android:title="@string/obd_timeout"
                 app:iconSpaceReserved="false" />
     </PreferenceCategory>
 

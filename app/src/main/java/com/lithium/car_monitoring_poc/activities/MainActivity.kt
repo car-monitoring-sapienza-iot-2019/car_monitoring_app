@@ -10,12 +10,15 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.github.pires.obd.commands.SpeedCommand
+import com.github.pires.obd.commands.engine.MassAirFlowCommand
+import com.github.pires.obd.commands.engine.RPMCommand
 import com.github.pires.obd.commands.engine.ThrottlePositionCommand
 import com.github.pires.obd.commands.protocol.EchoOffCommand
 import com.github.pires.obd.commands.protocol.LineFeedOffCommand
 import com.github.pires.obd.commands.protocol.SelectProtocolCommand
 import com.github.pires.obd.commands.protocol.TimeoutCommand
 import com.github.pires.obd.commands.temperature.AmbientAirTemperatureCommand
+import com.github.pires.obd.commands.temperature.EngineCoolantTemperatureCommand
 import com.github.pires.obd.enums.ObdProtocols
 import com.google.android.material.snackbar.Snackbar
 import com.karumi.dexter.Dexter
@@ -30,6 +33,7 @@ import com.mikepenz.materialdrawer.Drawer
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.base_stats_fragment.*
 import kotlinx.android.synthetic.main.empty_view.*
+import java.lang.Exception
 
 
 class MainActivity : AppCompatActivity() {
@@ -44,17 +48,19 @@ class MainActivity : AppCompatActivity() {
         ClientHelper.setupToolbar(this, toolbar, R.drawable.ic_menu_black_24dp)
         supportActionBar?.title = this.resources.getString(R.string.home)
         drawer = ClientHelper.applyDrawer(this,toolbar)
-        this.empty_text.text = "No compatible devices found"
+        this.empty_text.text = getString(R.string.no_devices)
         bluetoothId = InfoManager.getBluetoothDeviceID(this)
         putPlaceholders()
         if ( bluetoothId == null) swapViews(true)
         else startService()
 
-
         empty_button_reload.setOnClickListener {
             bluetoothId = InfoManager.getBluetoothDeviceID(this)
             if ( bluetoothId == null) swapViews(true)
-            else startService()
+            else {
+                swapViews(false)
+                startService()
+            }
         }
     }
 
@@ -91,43 +97,71 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getUpdates(){
-        var obtainSocket = true
-        var socket:BluetoothSocket? = null
         Thread (Runnable {
+            var obtainSocket = true
+            var socket:BluetoothSocket? = null
             while (true) {
-                if (obtainSocket) {
-                    socket = ClientHelper.getBluetoothSocket(this)
-                    if (socket == null) continue
-                    EchoOffCommand().run(socket!!.inputStream, socket!!.outputStream)
-                    LineFeedOffCommand().run(socket!!.inputStream, socket!!.outputStream)
-                    TimeoutCommand(125).run(socket!!.inputStream, socket!!.outputStream)
-                    SelectProtocolCommand(ObdProtocols.AUTO).run(socket!!.inputStream, socket!!.outputStream)
-                    obtainSocket = false
-                }
-                if (socket == null) {
+                Thread.sleep(2000)
+                try {
+                    if (obtainSocket) {
+                        socket = ClientHelper.getBluetoothSocket(this)
+                        socket?.connect()
+                        EchoOffCommand().run(socket!!.inputStream, socket.outputStream)
+                        LineFeedOffCommand().run(socket.inputStream, socket.outputStream)
+                        TimeoutCommand(ClientHelper.getTimeout(this)).run(socket.inputStream, socket.outputStream)
+                        SelectProtocolCommand(ObdProtocols.AUTO).run(socket.inputStream, socket.outputStream)
+                        Snackbar.make(mainLayout, "OBD connected!", Snackbar.LENGTH_SHORT).show()
+                        obtainSocket = false
+                        runOnUiThread {
+                            bluetoothStatus.text = resources.getString(R.string.bluetooth_status, getString(android.R.string.ok))
+                        }
+                    }
+
+                    if (socket == null || socket.inputStream==null || socket.outputStream == null) {
+                        obtainSocket = true
+                        socket?.close()
+                        continue
+                    }
+
+                    val rpm = RPMCommand()
+                    val speed = SpeedCommand()
+                    val throttle = ThrottlePositionCommand()
+                    val massAirflow = MassAirFlowCommand()
+                    val engineTemp = EngineCoolantTemperatureCommand()
+                    rpm.run(socket.inputStream, socket.outputStream)
+                    speed.run(socket.inputStream, socket.outputStream)
+                    throttle.run(socket.inputStream, socket.outputStream)
+                    massAirflow.run(socket.inputStream, socket.outputStream)
+                    engineTemp.run(socket.inputStream, socket.outputStream)
+                    runOnUiThread {
+                        txtRPM.text = resources.getString(R.string.rpm_text, rpm.formattedResult)
+                        txtSpeed.text = resources.getString(R.string.speed_text, speed.formattedResult)
+                        txtThrottle.text = resources.getString(R.string.throttle_text, throttle.formattedResult)
+                        txtAir.text = resources.getString(R.string.air_text, massAirflow.formattedResult)
+                        txtEngineTemp.text = resources.getString(R.string.engine_temp_text, engineTemp.formattedResult)
+                    }
+                } catch (e:Exception) {
+                    e.printStackTrace()
                     obtainSocket = true
-                    continue
+                    socket?.close()
+                    runOnUiThread {
+                        bluetoothStatus.text = resources.getString(R.string.bluetooth_status, getString(R.string.not_connected))
+                    }
                 }
 
-                val temperature = AmbientAirTemperatureCommand().run(socket!!.inputStream, socket!!.outputStream)
-                val throttle = ThrottlePositionCommand().run(socket!!.inputStream, socket!!.outputStream)
-                val speed = SpeedCommand().run(socket!!.inputStream, socket!!.outputStream)
-                runOnUiThread {
-                    txtTemperature.text = resources.getString(R.string.temp_text, temperature.toString())
-                    txtThrottle.text = resources.getString(R.string.throttle_text, throttle.toString())
-                    txtSpeed.text = resources.getString(R.string.speed_text, speed.toString())
-                }
             }
         }).start()
     }
 
     private fun putPlaceholders() {
         val placeholder = "--"
-        txtTemperature.text = resources.getString(R.string.temp_text, placeholder)
+        bluetoothStatus.text = resources.getString(R.string.bluetooth_status, getString(R.string.not_connected))
+        txtRPM.text = resources.getString(R.string.rpm_text, placeholder)
         txtThrottle.text = resources.getString(R.string.throttle_text, placeholder)
         txtSpeed.text = resources.getString(R.string.speed_text, placeholder)
         txtAir.text = resources.getString(R.string.air_text, placeholder)
-        txtDistance.text = resources.getString(R.string.distance_text, placeholder)
+        txtEngineTemp.text = resources.getString(R.string.engine_temp_text, placeholder)
+        gpsStatus.text = resources.getString(R.string.gps_position, getString(R.string.not_connected))
     }
     private fun swapViews(empty:Boolean) {
         runOnUiThread {
@@ -159,8 +193,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateViewLocation(updatedLocation : Location?){
         if (updatedLocation == null) return
-        val latitude = updatedLocation.latitude
-        val longitude = updatedLocation.longitude
-        gpsStatus.text = resources.getString(R.string.gps_position, latitude.toString(),longitude.toString())
+        runOnUiThread {
+            gpsStatus.text = resources.getString(R.string.gps_position,getString(android.R.string.ok))
+        }
     }
 }

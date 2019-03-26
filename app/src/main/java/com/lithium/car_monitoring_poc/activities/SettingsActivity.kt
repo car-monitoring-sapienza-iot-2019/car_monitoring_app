@@ -2,8 +2,10 @@ package com.lithium.car_monitoring_poc.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputType
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
+import androidx.preference.EditTextPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.lithium.car_monitoring_poc.R
@@ -40,6 +42,11 @@ class SettingsActivity : AppCompatActivity() {
                 val intent = Intent(activity, BluetoothConfigureActivity::class.java)
                 activity?.startActivity(intent)
                 true
+            }
+
+            val timeoutPreference = findPreference<EditTextPreference>(getString(R.string.key_timeout))
+            timeoutPreference?.onBindEditTextListener = EditTextPreference.OnBindEditTextListener {
+                it.inputType = InputType.TYPE_CLASS_NUMBER;
             }
         }
 

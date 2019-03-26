@@ -74,17 +74,16 @@ class BluetoothConfigureActivity : AppCompatActivity() {
             if (BluetoothDevice.ACTION_FOUND == action) {
                 val device = intent
                     .getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
-                val text = device.name + "\n" + device.address
+                val text = device.name + " " + device.address
                 if (mDeviceList.contains(text) || !mBluetoothAdapter.bondedDevices.contains(device)) return
-                mDeviceList.add(device.name + "\n" + device.address)
+                mDeviceList.add(text)
                 Log.i("BT1", device.name + "\n" + device.address)
                 listView.adapter = ArrayAdapter(
                     context,
                     R.layout.simple_list_item, mDeviceList
                 )
                 listView.onItemClickListener = AdapterView.OnItemClickListener { _: AdapterView<*>, _: View, i: Int, _: Long ->
-                    val split = mDeviceList[i].split("/n")
-                    InfoManager.setBluetoothDeviceID(context,split.last())
+                    InfoManager.setBluetoothDeviceID(context,mDeviceList[i].split(" ").last())
                     ClientHelper.createTextSnackBar(mainLayout,R.string.preferred_device_set, Snackbar.LENGTH_LONG)
                 }
             }

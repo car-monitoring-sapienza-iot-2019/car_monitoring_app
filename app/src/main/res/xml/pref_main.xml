@@ -22,5 +22,21 @@
                 android:title="@string/obd_timeout"
                 app:iconSpaceReserved="false" />
     </PreferenceCategory>
+    <PreferenceCategory
+            android:title="@string/apache_edgent"
+            app:iconSpaceReserved="false">
+        <EditTextPreference
+                android:key="@string/key_identifier"
+                android:title="@string/identifier"
+                app:iconSpaceReserved="false"/>
+        <EditTextPreference
+                android:key="@string/key_organization"
+                android:title="@string/organization"
+                app:iconSpaceReserved="false"/>
+        <EditTextPreference
+                android:key="@string/key_token"
+                android:title="@string/token"
+                app:iconSpaceReserved="false"/>
+    </PreferenceCategory>
 
 </PreferenceScreen>

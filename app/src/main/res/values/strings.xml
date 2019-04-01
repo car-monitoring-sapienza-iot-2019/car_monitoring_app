@@ -25,4 +25,11 @@
     <string name="no_devices">No compatible devices found</string>
     <string name="key_timeout">key_obd_timeout</string>
     <string name="obd_timeout">Timeout</string>
+    <string name="apache_edgent">Apache Edgent</string>
+    <string name="organization">Organization</string>
+    <string name="token">Token</string>
+    <string name="identifier">Identifier</string>
+    <string name="key_identifier">key_identifier</string>
+    <string name="key_organization">key_organization</string>
+    <string name="key_token">key_token</string>
 </resources>

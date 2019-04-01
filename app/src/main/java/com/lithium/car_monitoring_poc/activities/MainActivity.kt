@@ -17,7 +17,6 @@ import com.github.pires.obd.commands.protocol.EchoOffCommand
 import com.github.pires.obd.commands.protocol.LineFeedOffCommand
 import com.github.pires.obd.commands.protocol.SelectProtocolCommand
 import com.github.pires.obd.commands.protocol.TimeoutCommand
-import com.github.pires.obd.commands.temperature.AmbientAirTemperatureCommand
 import com.github.pires.obd.commands.temperature.EngineCoolantTemperatureCommand
 import com.github.pires.obd.enums.ObdProtocols
 import com.google.android.material.snackbar.Snackbar
@@ -33,13 +32,22 @@ import com.mikepenz.materialdrawer.Drawer
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.base_stats_fragment.*
 import kotlinx.android.synthetic.main.empty_view.*
+import sapienza.iot.DataBuilder
+import sapienza.iot.EdgentApp
+import sapienza.iot.Interfaces.ReadLocationSensor
 import java.lang.Exception
 
 
 class MainActivity : AppCompatActivity() {
     private var drawer: Drawer? = null
     private var bluetoothId: String? = null
-    @Volatile var location:Location? = null
+    @Volatile var location:Location? = null @Synchronized get @Synchronized set
+    var active = false
+    var rpm: Int? = null @Synchronized get @Synchronized set
+    var throttle: Float? = null @Synchronized get @Synchronized set
+    var speed: Int? = null @Synchronized get @Synchronized set
+    var temp: Float? = null @Synchronized get @Synchronized set
+    var airflow: Double? = null @Synchronized get @Synchronized set
 
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -98,12 +106,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun getUpdates(){
         Thread (Runnable {
-            var obtainSocket = true
             var socket:BluetoothSocket? = null
+            val builder = setupDataBuilder()
+            EdgentApp.init(InfoManager.getEdgentProperty(this), builder)
             while (true) {
                 Thread.sleep(2000)
                 try {
-                    if (obtainSocket) {
+                    if (!active) {
                         socket = ClientHelper.getBluetoothSocket(this)
                         socket?.connect()
                         EchoOffCommand().run(socket!!.inputStream, socket.outputStream)
@@ -111,38 +120,41 @@ class MainActivity : AppCompatActivity() {
                         TimeoutCommand(ClientHelper.getTimeout(this)).run(socket.inputStream, socket.outputStream)
                         SelectProtocolCommand(ObdProtocols.AUTO).run(socket.inputStream, socket.outputStream)
                         Snackbar.make(mainLayout, "OBD connected!", Snackbar.LENGTH_SHORT).show()
-                        obtainSocket = false
+                        active = true
                         runOnUiThread {
                             bluetoothStatus.text = resources.getString(R.string.bluetooth_status, getString(android.R.string.ok))
                         }
                     }
 
                     if (socket == null || socket.inputStream==null || socket.outputStream == null) {
-                        obtainSocket = true
+                        active = false
                         socket?.close()
                         continue
                     }
 
-                    val rpm = RPMCommand()
-                    val speed = SpeedCommand()
-                    val throttle = ThrottlePositionCommand()
-                    val massAirflow = MassAirFlowCommand()
-                    val engineTemp = EngineCoolantTemperatureCommand()
-                    rpm.run(socket.inputStream, socket.outputStream)
-                    speed.run(socket.inputStream, socket.outputStream)
-                    throttle.run(socket.inputStream, socket.outputStream)
-                    massAirflow.run(socket.inputStream, socket.outputStream)
-                    engineTemp.run(socket.inputStream, socket.outputStream)
+
+                    val rpmCmd = RPMCommand()
+                    val speedCmd = SpeedCommand()
+                    val throttleCmd = ThrottlePositionCommand()
+                    val massAirflowCmd = MassAirFlowCommand()
+                    val engineTempCmd = EngineCoolantTemperatureCommand()
+                    rpmCmd.run(socket.inputStream, socket.outputStream)
+                    speedCmd.run(socket.inputStream, socket.outputStream)
+                    throttleCmd.run(socket.inputStream, socket.outputStream)
+                    massAirflowCmd.run(socket.inputStream, socket.outputStream)
+                    engineTempCmd.run(socket.inputStream, socket.outputStream)
+                    updateValues(rpmCmd,speedCmd,throttleCmd,massAirflowCmd,engineTempCmd)
                     runOnUiThread {
-                        txtRPM.text = resources.getString(R.string.rpm_text, rpm.formattedResult)
-                        txtSpeed.text = resources.getString(R.string.speed_text, speed.formattedResult)
-                        txtThrottle.text = resources.getString(R.string.throttle_text, throttle.formattedResult)
-                        txtAir.text = resources.getString(R.string.air_text, massAirflow.formattedResult)
-                        txtEngineTemp.text = resources.getString(R.string.engine_temp_text, engineTemp.formattedResult)
+                        txtRPM.text = resources.getString(R.string.rpm_text, rpmCmd.formattedResult)
+                        txtSpeed.text = resources.getString(R.string.speed_text, speedCmd.formattedResult)
+                        txtThrottle.text = resources.getString(R.string.throttle_text, throttleCmd.formattedResult)
+                        txtAir.text = resources.getString(R.string.air_text, massAirflowCmd.formattedResult)
+                        txtEngineTemp.text = resources.getString(R.string.engine_temp_text, engineTempCmd.formattedResult)
+                        println(builder.engineRPMSensor.int)
                     }
                 } catch (e:Exception) {
                     e.printStackTrace()
-                    obtainSocket = true
+                    active = false
                     socket?.close()
                     runOnUiThread {
                         bluetoothStatus.text = resources.getString(R.string.bluetooth_status, getString(R.string.not_connected))
@@ -153,48 +165,78 @@ class MainActivity : AppCompatActivity() {
         }).start()
     }
 
-    private fun putPlaceholders() {
-        val placeholder = "--"
-        bluetoothStatus.text = resources.getString(R.string.bluetooth_status, getString(R.string.not_connected))
-        txtRPM.text = resources.getString(R.string.rpm_text, placeholder)
-        txtThrottle.text = resources.getString(R.string.throttle_text, placeholder)
-        txtSpeed.text = resources.getString(R.string.speed_text, placeholder)
-        txtAir.text = resources.getString(R.string.air_text, placeholder)
-        txtEngineTemp.text = resources.getString(R.string.engine_temp_text, placeholder)
-        gpsStatus.text = resources.getString(R.string.gps_position, getString(R.string.not_connected))
+    private fun updateValues(rpmCmd: RPMCommand, speedCmd:SpeedCommand, throttleCmd:ThrottlePositionCommand, massAirflowCmd:MassAirFlowCommand, engineTempCmd:EngineCoolantTemperatureCommand){
+        this.rpm = rpmCmd.rpm
+        this.speed = speedCmd.metricSpeed
+        this.throttle = throttleCmd.percentage
+        this.airflow = massAirflowCmd.maf
+        this.temp = engineTempCmd.temperature
     }
-    private fun swapViews(empty:Boolean) {
-        runOnUiThread {
-            if (empty) {
-                emptyLayout.visibility = View.VISIBLE
-                statsLayout.visibility = View.GONE
-            } else {
-                emptyLayout.visibility = View.GONE
-                statsLayout.visibility = View.VISIBLE
+
+    private fun setupDataBuilder() : DataBuilder{
+        val builder = DataBuilder()
+        builder.setEngineRPMSensor { if (active) rpm else null }
+        builder.setMassAirFlowSensor { if (active) airflow else null }
+        builder.setThrottleSensor { if (active) throttle else null }
+        builder.setSpeedSensor { if (active) speed else null }
+        builder.setTemperatureSensor { if (active) temp else null }
+
+        builder.locationSensor = (object :ReadLocationSensor {
+            override fun getLatitude(): Long? {
+                val tmp = location
+                return if (active && tmp != null) tmp.latitude.toLong() else null
+            }
+
+            override fun getLongitude(): Long? {
+                val tmp = location
+                return if (active && tmp != null) tmp.longitude.toLong() else null
+            }
+        })
+        return builder
+    }
+
+    private fun putPlaceholders() {
+            val placeholder = "--"
+            bluetoothStatus.text = resources.getString(R.string.bluetooth_status, getString(R.string.not_connected))
+            txtRPM.text = resources.getString(R.string.rpm_text, placeholder)
+            txtThrottle.text = resources.getString(R.string.throttle_text, placeholder)
+            txtSpeed.text = resources.getString(R.string.speed_text, placeholder)
+            txtAir.text = resources.getString(R.string.air_text, placeholder)
+            txtEngineTemp.text = resources.getString(R.string.engine_temp_text, placeholder)
+            gpsStatus.text = resources.getString(R.string.gps_position, getString(R.string.not_connected))
+        }
+                private fun swapViews(empty:Boolean) {
+            runOnUiThread {
+                if (empty) {
+                    emptyLayout.visibility = View.VISIBLE
+                    statsLayout.visibility = View.GONE
+                } else {
+                    emptyLayout.visibility = View.GONE
+                    statsLayout.visibility = View.VISIBLE
+                }
             }
         }
-    }
 
     private val mLocationListener = object : LocationListener {
-        override fun onProviderDisabled(provider: String?) {
-        }
+            override fun onProviderDisabled(provider: String?) {
+            }
 
-        override fun onProviderEnabled(provider: String?) {
-        }
+            override fun onProviderEnabled(provider: String?) {
+            }
 
-        override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
-        }
+            override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
+            }
 
-        override fun onLocationChanged(newLocation: Location) {
-            location = newLocation
-            updateViewLocation(location)
+            override fun onLocationChanged(newLocation: Location) {
+                location = newLocation
+                updateViewLocation(location)
+            }
         }
-    }
 
     private fun updateViewLocation(updatedLocation : Location?){
-        if (updatedLocation == null) return
-        runOnUiThread {
-            gpsStatus.text = resources.getString(R.string.gps_position,getString(android.R.string.ok))
+            if (updatedLocation == null) return
+            runOnUiThread {
+                gpsStatus.text = resources.getString(R.string.gps_position,getString(android.R.string.ok))
+            }
         }
-    }
 }

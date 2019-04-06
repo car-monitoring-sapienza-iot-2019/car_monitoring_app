@@ -13,10 +13,7 @@ import com.github.pires.obd.commands.SpeedCommand
 import com.github.pires.obd.commands.engine.MassAirFlowCommand
 import com.github.pires.obd.commands.engine.RPMCommand
 import com.github.pires.obd.commands.engine.ThrottlePositionCommand
-import com.github.pires.obd.commands.protocol.EchoOffCommand
-import com.github.pires.obd.commands.protocol.LineFeedOffCommand
-import com.github.pires.obd.commands.protocol.SelectProtocolCommand
-import com.github.pires.obd.commands.protocol.TimeoutCommand
+import com.github.pires.obd.commands.protocol.*
 import com.github.pires.obd.commands.temperature.EngineCoolantTemperatureCommand
 import com.github.pires.obd.enums.ObdProtocols
 import com.google.android.material.snackbar.Snackbar
@@ -109,9 +106,19 @@ class MainActivity : AppCompatActivity() {
             var socket:BluetoothSocket? = null
             val builder = setupDataBuilder()
             EdgentApp.init(InfoManager.getEdgentProperty(this), builder)
+            var reset = false
             while (true) {
-                Thread.sleep(2000)
+                Thread.sleep(1500)
                 try {
+                    if (reset) {
+                        try {
+                            CloseCommand().run(socket!!.inputStream, socket.outputStream)
+                        } catch (e:Exception) {
+                            e.printStackTrace()
+                        }
+                        socket?.close()
+                        reset = false
+                    }
                     if (!active) {
                         socket = ClientHelper.getBluetoothSocket(this)
                         socket?.connect()
@@ -155,7 +162,7 @@ class MainActivity : AppCompatActivity() {
                 } catch (e:Exception) {
                     e.printStackTrace()
                     active = false
-                    socket?.close()
+                    reset = true
                     runOnUiThread {
                         bluetoothStatus.text = resources.getString(R.string.bluetooth_status, getString(R.string.not_connected))
                     }

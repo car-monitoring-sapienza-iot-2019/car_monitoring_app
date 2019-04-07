@@ -18,23 +18,23 @@ class InfoManager {
 
         fun getBluetoothDeviceID(context: Context): String? {
             setupSharedPreferences(context)
-            return pref!!.getString("device",null)
+            return pref!!.getString("device", null)
         }
 
-        fun setBluetoothDeviceID(context: Context, id:String) {
+        fun setBluetoothDeviceID(context: Context, id: String) {
             setupSharedPreferences(context)
-            pref!!.edit().putString("device",id).apply()
+            pref!!.edit().putString("device", id).apply()
         }
 
-        fun getEdgentProperty(context: Context):Properties {
+        fun getEdgentProperty(context: Context): Properties {
             val pref = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
             val prop = Properties()
 
-            prop.setProperty("org", pref.getString(context.resources.getString(R.string.key_organization),"null"))
+            prop.setProperty("org", pref.getString(context.resources.getString(R.string.key_organization), "null"))
             prop.setProperty("type", "android")
-            prop.setProperty("id", pref.getString(context.resources.getString(R.string.key_identifier),"null"))
+            prop.setProperty("id", pref.getString(context.resources.getString(R.string.key_identifier), "null"))
             prop.setProperty("auth-method", "token")
-            prop.setProperty("auth-token", pref.getString(context.resources.getString(R.string.key_token),"null"))
+            prop.setProperty("auth-token", pref.getString(context.resources.getString(R.string.key_token), "null"))
             return prop
         }
 

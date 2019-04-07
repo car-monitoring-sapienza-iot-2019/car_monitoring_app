@@ -32,9 +32,10 @@ class ClientHelper {
     enum class Selection(val value: Long) {
         HOME(1), SETTINGS(2)
     }
+
     companion object {
         private val MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
-        fun setupToolbar(activity: AppCompatActivity, toolbar: Toolbar, icon:Int) {
+        fun setupToolbar(activity: AppCompatActivity, toolbar: Toolbar, icon: Int) {
             activity.setSupportActionBar(toolbar)
             val actionbar = activity.supportActionBar
             actionbar!!.setDisplayHomeAsUpEnabled(true)
@@ -67,7 +68,7 @@ class ClientHelper {
 
         fun applyDrawer(activity: Activity, toolbar: Toolbar): Drawer {
             val primaryColor = ClientHelper.getPrimaryTextColor(activity)
-            val ddl = object : DelayedDrawerListener(){
+            val ddl = object : DelayedDrawerListener() {
                 override fun onDrawerClosed(drawerView: View) {
                     val item = this.itemPressed
                     if (item == -1L) return
@@ -80,7 +81,8 @@ class ClientHelper {
                 .withIcon(R.drawable.ic_directions_car_black_24dp).withName(R.string.home).withTextColor(primaryColor)
                 .withIconColor(primaryColor).withSelectable(activityIdentifier == Selection.HOME.value)
                 .withIconTintingEnabled(true)
-            val settings = PrimaryDrawerItem().withIdentifier(Selection.SETTINGS.value).withIcon(R.drawable.ic_settings_black_24dp)
+            val settings =
+                PrimaryDrawerItem().withIdentifier(Selection.SETTINGS.value).withIcon(R.drawable.ic_settings_black_24dp)
                     .withName(R.string.settings).withTextColor(primaryColor).withIconColor(primaryColor)
                     .withSelectable(activityIdentifier == Selection.SETTINGS.value).withIconTintingEnabled(true)
 
@@ -135,23 +137,23 @@ class ClientHelper {
             return snackbar
         }
 
-        fun getBluetoothSocket(context:Context) : BluetoothSocket? {
+        fun getBluetoothSocket(context: Context): BluetoothSocket? {
             val id = InfoManager.getBluetoothDeviceID(context) ?: return null
 
             return if (context.packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)) {
                 val mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
                 return try {
                     mBluetoothAdapter.getRemoteDevice(id).createInsecureRfcommSocketToServiceRecord(MY_UUID)
-                } catch (e:IllegalArgumentException) {
+                } catch (e: IllegalArgumentException) {
                     e.printStackTrace()
                     null
                 }
             } else null
         }
 
-        fun getTimeout(context:Context): Int {
+        fun getTimeout(context: Context): Int {
             val pref = androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
-            return pref.getString(context.resources.getString(R.string.key_timeout),"125").toInt()
+            return pref.getString(context.resources.getString(R.string.key_timeout), "125").toInt()
         }
 
     }

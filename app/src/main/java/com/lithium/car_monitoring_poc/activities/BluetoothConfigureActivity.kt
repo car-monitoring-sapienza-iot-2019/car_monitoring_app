@@ -30,20 +30,20 @@ import kotlinx.android.synthetic.main.activity_bluetooth_configure.*
 class BluetoothConfigureActivity : AppCompatActivity() {
     private val mDeviceList = ArrayList<String>()
     private lateinit var mBluetoothAdapter: BluetoothAdapter
-    private var registeredReceiver:Boolean = false
+    private var registeredReceiver: Boolean = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_bluetooth_configure)
         ClientHelper.setupToolbar(this, toolbar, R.drawable.ic_arrow_back_black_24dp)
         supportActionBar!!.setTitle(R.string.configure_bluetooth_device)
         if (packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)) {
-                registeredReceiver = true
-                mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-                startDiscovery(mBluetoothAdapter)
-        } else ClientHelper.createTextSnackBar(mainLayout,R.string.no_bluetooth_support, Snackbar.LENGTH_LONG)
+            registeredReceiver = true
+            mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+            startDiscovery(mBluetoothAdapter)
+        } else ClientHelper.createTextSnackBar(mainLayout, R.string.no_bluetooth_support, Snackbar.LENGTH_LONG)
     }
 
-    private fun startDiscovery(bluetoothAdapter:BluetoothAdapter) {
+    private fun startDiscovery(bluetoothAdapter: BluetoothAdapter) {
         Thread(Runnable {
             Dexter.withActivity(this)
                 .withPermissions(
@@ -55,14 +55,17 @@ class BluetoothConfigureActivity : AppCompatActivity() {
                         if (report.areAllPermissionsGranted()) {
                             bluetoothAdapter.startDiscovery()
                             val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
-                            registerReceiver(mReceiver,filter)
+                            registerReceiver(mReceiver, filter)
                         } else {
-                            ClientHelper.createTextSnackBar(mainLayout,R.string.permission_error, Snackbar.LENGTH_LONG)
+                            ClientHelper.createTextSnackBar(mainLayout, R.string.permission_error, Snackbar.LENGTH_LONG)
                         }
                     }
 
-                    override fun onPermissionRationaleShouldBeShown(permissions: List<PermissionRequest>, token: PermissionToken) {
-                            token.continuePermissionRequest()
+                    override fun onPermissionRationaleShouldBeShown(
+                        permissions: List<PermissionRequest>,
+                        token: PermissionToken
+                    ) {
+                        token.continuePermissionRequest()
                     }
                 }).check()
         }).start()
@@ -82,10 +85,11 @@ class BluetoothConfigureActivity : AppCompatActivity() {
                     context,
                     R.layout.simple_list_item, mDeviceList
                 )
-                listView.onItemClickListener = AdapterView.OnItemClickListener { _: AdapterView<*>, _: View, i: Int, _: Long ->
-                    InfoManager.setBluetoothDeviceID(context,mDeviceList[i].split(" ").last())
-                    ClientHelper.createTextSnackBar(mainLayout,R.string.preferred_device_set, Snackbar.LENGTH_LONG)
-                }
+                listView.onItemClickListener =
+                    AdapterView.OnItemClickListener { _: AdapterView<*>, _: View, i: Int, _: Long ->
+                        InfoManager.setBluetoothDeviceID(context, mDeviceList[i].split(" ").last())
+                        ClientHelper.createTextSnackBar(mainLayout, R.string.preferred_device_set, Snackbar.LENGTH_LONG)
+                    }
             }
         }
     }

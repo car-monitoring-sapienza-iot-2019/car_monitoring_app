@@ -38,13 +38,14 @@ import java.lang.Exception
 class MainActivity : AppCompatActivity() {
     private var drawer: Drawer? = null
     private var bluetoothId: String? = null
-    @Volatile var location:Location? = null @Synchronized get @Synchronized set
     var active = false
     var rpm: Int? = null @Synchronized get @Synchronized set
     var throttle: Float? = null @Synchronized get @Synchronized set
     var speed: Int? = null @Synchronized get @Synchronized set
     var temp: Float? = null @Synchronized get @Synchronized set
     var airflow: Double? = null @Synchronized get @Synchronized set
+    var location:Location? = null @Synchronized get @Synchronized set
+    private var checking:Boolean = true
 
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,6 +54,7 @@ class MainActivity : AppCompatActivity() {
         ClientHelper.setupToolbar(this, toolbar, R.drawable.ic_menu_black_24dp)
         supportActionBar?.title = this.resources.getString(R.string.home)
         drawer = ClientHelper.applyDrawer(this,toolbar)
+        checking = true
         this.empty_text.text = getString(R.string.no_devices)
         bluetoothId = InfoManager.getBluetoothDeviceID(this)
         putPlaceholders()
@@ -107,7 +109,7 @@ class MainActivity : AppCompatActivity() {
             val builder = setupDataBuilder()
             EdgentApp.init(InfoManager.getEdgentProperty(this), builder)
             var reset = false
-            while (true) {
+            while (checking) {
                 Thread.sleep(1500)
                 try {
                     if (reset) {
@@ -168,6 +170,11 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
+            }
+            try {
+                CloseCommand().run(socket!!.inputStream, socket.outputStream)
+            } catch (e:Exception) {
+                e.printStackTrace()
             }
         }).start()
     }
@@ -246,4 +253,9 @@ class MainActivity : AppCompatActivity() {
                 gpsStatus.text = resources.getString(R.string.gps_position,getString(android.R.string.ok))
             }
         }
+
+    override fun onStop(){
+        super.onStop()
+        checking = false
+    }
 }

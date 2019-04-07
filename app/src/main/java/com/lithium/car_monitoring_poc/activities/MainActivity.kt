@@ -207,14 +207,14 @@ class MainActivity : AppCompatActivity() {
         builder.setTemperatureSensor { if (active) temp else null }
 
         builder.locationSensor = (object : ReadLocationSensor {
-            override fun getLatitude(): Long? {
+            override fun getLatitude(): Double? {
                 val tmp = location
-                return if (active && tmp != null) tmp.latitude.toLong() else null
+                return if (active && tmp != null) tmp.latitude else null
             }
 
-            override fun getLongitude(): Long? {
+            override fun getLongitude(): Double? {
                 val tmp = location
-                return if (active && tmp != null) tmp.longitude.toLong() else null
+                return if (active && tmp != null) tmp.longitude else null
             }
         })
         return builder

@@ -112,7 +112,6 @@ class MainActivity : AppCompatActivity() {
             EdgentApp.init(InfoManager.getEdgentProperty(this), builder)
             var reset = false
             while (checking) {
-                Thread.sleep(1500)
                 try {
                     if (reset) {
                         try {
@@ -163,7 +162,6 @@ class MainActivity : AppCompatActivity() {
                         txtAir.text = resources.getString(R.string.air_text, massAirflowCmd.formattedResult)
                         txtEngineTemp.text =
                             resources.getString(R.string.engine_temp_text, engineTempCmd.formattedResult)
-                        println(builder.engineRPMSensor.int)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
